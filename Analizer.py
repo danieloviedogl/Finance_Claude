@@ -21,11 +21,12 @@ class AdvancedStockAnalyzer:
     statistical, and machine learning approaches to provide investment recommendations.
     """
     
-    def __init__(self, ticker, start_date='2018-01-01', benchmark='SPY'):
+    def __init__(self, ticker, start_date='2018-01-01', benchmark='SPY', portfolio_tickers=['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'BRK-B']):
         """Initialize with stock ticker and analysis parameters"""
         self.ticker = ticker
         self.start_date = start_date
         self.benchmark = benchmark
+        self.portfolio_tickers = portfolio_tickers
         self.data = None
         self.benchmark_data = None
         self.results = {}
@@ -130,9 +131,18 @@ class AdvancedStockAnalyzer:
     
     def calculate_risk_metrics(self):
         """Calculate risk metrics and ratios"""
-        # Calculate risk metrics
-        returns = self.data['Returns'].dropna()
-        benchmark_returns = self.benchmark_data['Returns'].dropna()
+        # Crear un DataFrame combinado para hacer dropna en ambos a la vez
+        combined = pd.DataFrame({
+            'returns': self.data['Returns'],
+            'benchmark_returns': self.benchmark_data['Returns']
+        })
+        
+        # Eliminar filas donde cualquiera de las dos series tenga NaN
+        combined = combined.dropna()
+        
+        # Extraer las series limpias
+        returns = combined['returns']
+        benchmark_returns = combined['benchmark_returns']
         
         # Beta calculation
         covariance = np.cov(returns, benchmark_returns)[0, 1]
@@ -336,13 +346,13 @@ class AdvancedStockAnalyzer:
         self.simulation_results = simulation_df
         return self.results['monte_carlo']
     
-    def calculate_optimal_portfolio(self, other_tickers=['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'BRK-B']):
+    def calculate_optimal_portfolio(self):
         """Calculate optimal portfolio using Modern Portfolio Theory"""
         # Add the current ticker to the list if not already included
-        if self.ticker not in other_tickers:
-            tickers = [self.ticker] + other_tickers
+        if self.ticker not in self.portfolio_tickers:
+            tickers = [self.ticker] + self.portfolio_tickers
         else:
-            tickers = other_tickers.copy()
+            tickers = self.portfolio_tickers.copy()
         
         # Download historical data for all tickers
         portfolio_data = yf.download(tickers, start=self.start_date)['Close']
@@ -666,7 +676,8 @@ class AdvancedStockAnalyzer:
                     'std_final_price': round(self.results['monte_carlo']['std_final_price'], 2)
                 },
                 'portfolio': {
-                    'current_ticker_weight': round(self.results['portfolio']['current_ticker_weight'] * 100, 2)
+                    'current_ticker_weight': round(self.results['portfolio']['current_ticker_weight'] * 100, 2),
+                    'optimal_weights': self.results['portfolio']['optimal_weights']
                 },
                 'sentiment': {
                     'sentiment': self.results['sentiment']['sentiment'],
@@ -674,10 +685,12 @@ class AdvancedStockAnalyzer:
                 }
             }
         }
+        print('Se generó la recomendación final/n')
+        print(final_recommendation)
         return final_recommendation
 
 if __name__ == "__main__":
     # Example usage
-    analyzer = AdvancedStockAnalyzer('CLSK')
+    analyzer = AdvancedStockAnalyzer('NVDA', portfolio_tickers= ['AAPL','NVDA'])
     result = analyzer.run_full_analysis()
     print(result)
