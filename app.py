@@ -67,10 +67,16 @@ st.markdown("""
 # Lista predefinida de empresas populares para incluir en el portafolio
 # Esta lista podría expandirse o cargarse desde un archivo externo
 DEFAULT_COMPANIES = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "AMD", "INTC", "JPM",
-    "BAC", "WFC", "GS", "V", "MA", "DIS", "NFLX", "PG", "KO", "PEP", "WMT", "HD",
-    "CSCO", "VZ", "T", "PFE", "MRK", "JNJ", "UNH", "CVX", "XOM", "BA", "CAT",
-    "MMM", "IBM", "ORCL", "CRM", "ADBE", "PYPL", "BABA", "TSM", "ASML", "NKE"
+    "AAPL - Apple", "MSFT - Microsoft", "GOOGL - Alphabet", "AMZN - Amazon", "META - Meta", 
+    "TSLA - Tesla", "NVDA - Nvidia", "AMD - Advanced Micro Devices", "INTC - Intel", 
+    "JPM - JPMorgan Chase", "BAC - Bank of America", "WFC - Wells Fargo", "GS - Goldman Sachs", 
+    "V - Visa", "MA - Mastercard", "DIS - Disney", "NFLX - Netflix", "PG - Procter & Gamble", 
+    "KO - Coca-Cola", "PEP - Pepsi", "WMT - Walmart", "HD - Home Depot", "CSCO - Cisco", 
+    "VZ - Verizon", "T - AT&T", "PFE - Pfizer", "MRK - Merck", "JNJ - Johnson & Johnson", 
+    "UNH - UnitedHealth", "CVX - Chevron", "XOM - Exxon Mobil", "BA - Boeing", 
+    "CAT - Caterpillar", "MMM - 3M", "IBM - IBM", "ORCL - Oracle", "CRM - Salesforce", 
+    "ADBE - Adobe", "PYPL - PayPal", "BABA - Alibaba", "TSM - TSMC", "ASML - ASML", 
+    "NKE - Nike"
 ]
 
 # Inicializar estado de sesión para el portafolio
