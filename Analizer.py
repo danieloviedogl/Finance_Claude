@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.tsa.stattools import adfuller
@@ -479,6 +480,78 @@ class AdvancedStockAnalyzer:
         
         return self.results['sentiment']
     
+    def backtest_portfolio(self, years_back=3):
+        """
+        Backtest the recommended portfolio performance for the specified number of years given that the object has ran the run_full_analysis function.
+        
+        Args:
+            years_back (int): Number of years to backtrack for portfolio performance analysis
+        
+        Returns:
+            dict: Portfolio backtest results including annualized return, volatility, and comparisons
+        """
+        # Ensure we have the portfolio tickers
+        if not hasattr(self, 'results') or 'portfolio' not in self.results:
+            raise ValueError("Run calculate_optimal_portfolio() first to get portfolio composition")
+        
+        # Get portfolio composition
+        portfolio_tickers = list(self.results['portfolio']['optimal_weights'].keys())
+        portfolio_weights = list(self.results['portfolio']['optimal_weights'].values())
+        
+        # Define start date for backtest
+        backtest_start_date = pd.to_datetime(self.start_date) - pd.DateOffset(years=years_back)
+        
+        # Download historical prices
+        historical_prices = yf.download(portfolio_tickers, start=backtest_start_date, end=self.start_date)['Close']
+        
+        # Calculate returns
+        returns = historical_prices.pct_change().dropna()
+        
+        # Calculate portfolio returns
+        portfolio_returns = returns.dot(portfolio_weights)
+        
+        # Annualize returns
+        annualized_return = (1 + portfolio_returns).prod() ** (1/years_back) - 1
+        annualized_volatility = portfolio_returns.std() * np.sqrt(252)  # Assuming 252 trading days
+        
+        # Sharpe Ratio (using risk-free rate of 4.5%)
+        risk_free_rate = 0.045
+        sharpe_ratio = (annualized_return - risk_free_rate) / annualized_volatility
+        
+        # Benchmark comparison (using SPY as benchmark)
+        benchmark_returns = yf.download('SPY', start=backtest_start_date, end=self.start_date)['Close'].pct_change().dropna()
+        benchmark_annualized_return = (1 + benchmark_returns).prod() ** (1/years_back) - 1
+        benchmark_annualized_volatility = benchmark_returns.std() * np.sqrt(252)
+        
+        # Maximum Drawdown
+        cumulative_returns = (1 + portfolio_returns).cumprod()
+        running_max = cumulative_returns.cummax()
+        drawdown = (cumulative_returns / running_max) - 1
+        max_drawdown = drawdown.min()
+        
+        # Prepare backtest results
+        backtest_results = {
+            'portfolio_tickers': portfolio_tickers,
+            'portfolio_weights': dict(zip(portfolio_tickers, portfolio_weights)),
+            'annualized_return': float(annualized_return * 100),  # Percentage
+            'annualized_volatility': float(annualized_volatility * 100),  # Percentage
+            'sharpe_ratio': float(sharpe_ratio),
+            'max_drawdown': float(max_drawdown * 100),  # Percentage
+            'benchmark_comparison': {
+                'benchmark': 'SPY',
+                'benchmark_annualized_return': float(benchmark_annualized_return * 100),
+                'benchmark_annualized_volatility': float(benchmark_annualized_volatility * 100),
+                'outperformance': float((annualized_return - benchmark_annualized_return) * 100)
+            }
+        }
+        
+        # Store results for future reference
+        if 'portfolio_backtest' not in self.results:
+            self.results['portfolio_backtest'] = {}
+        self.results['portfolio_backtest'][f'{years_back}_years'] = backtest_results
+        
+        return backtest_results
+    
     def run_full_analysis(self):
         """Run all analyses and generate comprehensive results"""
         self.fetch_data()
@@ -691,6 +764,8 @@ class AdvancedStockAnalyzer:
 
 if __name__ == "__main__":
     # Example usage
-    analyzer = AdvancedStockAnalyzer('NVDA', portfolio_tickers= ['AAPL','NVDA'])
+    analyzer = AdvancedStockAnalyzer('AAPL', portfolio_tickers= ['ADBE','CSCO','IBM','KO','AMD','NVDA','TSLA','MSFT','GOOGL','AMZN'])
     result = analyzer.run_full_analysis()
-    print(result)
+    backtest_result = analyzer.backtest_portfolio()
+    print(json.dumps(result, indent=4, ensure_ascii=False))
+    print(json.dumps(backtest_result, indent=4, ensure_ascii=False))
