@@ -79,7 +79,7 @@ def remove_ticker_callback(ticker_to_remove):
 
 def clear_portfolio_callback():
     """Reset portfolio to default""" # Changed docstring
-    st.session_state.portfolio_tickers = DEFAULT_PORTFOLIO_TICKERS.copy() # Use default from Analyzer.py
+    st.session_state.portfolio_tickers = [] # Reset to empty list
 
 def run_optimization_callback():
     """Prepare to run optimization""" # Changed docstring

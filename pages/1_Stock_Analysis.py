@@ -128,17 +128,9 @@ if st.session_state.running_stock_analysis and not st.session_state.stock_analys
     try:
         # Translate spinner message
         with st.spinner(f"Analyzing {current_ticker}... This may take a moment."):
-            # Ensure the current ticker is in the portfolio list for analysis
-            if current_ticker not in portfolio_list:
-                 portfolio_list_for_analysis = sorted(list(set([current_ticker] + portfolio_list)))
-                 # Translate warning message
-                 st.warning(f"{current_ticker} was not in the portfolio list; it has been temporarily added for contextual analysis.")
-            else:
-                 portfolio_list_for_analysis = portfolio_list
 
             analyzer = AdvancedStockAnalyzer(
                 ticker=current_ticker,
-                portfolio_tickers=portfolio_list_for_analysis,
                 risk_free_rate=risk_free_rate,
                 benchmark=benchmark
             )
@@ -177,7 +169,7 @@ if st.session_state.stock_analysis_error:
 if st.session_state.stock_analysis_result:
     result = st.session_state.stock_analysis_result
     current_ticker = result.get('ticker', 'N/A')
-    
+
     # --- Recommendation Card ---
     rec_color = result.get('recommendation_color', '#cccccc') # Default color
     rec_text = result.get('recommendation_text', 'Recommendation unavailable.') # Translate default text if desired, but the actual text comes from Analyzer
@@ -395,7 +387,7 @@ if st.session_state.stock_analysis_result:
 # --- Initial Message if no results ---
 if not st.session_state.stock_analysis_result and not st.session_state.stock_analysis_error and not st.session_state.running_stock_analysis:
      # Translate info message
-    st.info("Enter a ticker in the sidebar and click 'Analyze Stock' to view the results.")
+    st.info("Enter a ticker in the sidebar and click ´Analyze Stock´ to view the results.")
 
 # --- Footer (Optional, if not globally set in app.py) ---
 # st.markdown('<div class="footer">Stock Analysis | © 2024</div>', unsafe_allow_html=True)
