@@ -12,7 +12,7 @@ st.markdown("""
 
     ---
 
-    ### **What can you do?**
+    ### **What can you do? :)**
 
     *   **📈 Stock Analysis Page:**
         *   Dive deep into an individual stock by entering its ticker symbol.
