@@ -5,7 +5,7 @@ from scipy.optimize import minimize
 from typing import Dict, Any, Optional, List, Tuple
 from .utils import to_serializable
 from curl_cffi import requests
-session = requests.Session(impersonate="chrome")
+session = requests.Session(impersonate="edge")
 
 def calculate_optimal_portfolio(portfolio_tickers: List[str], start_date: str, risk_free_rate: float, ticker: str, results: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Calculate optimal portfolio weights (max Sharpe ratio) using MPT."""

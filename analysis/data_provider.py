@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, List
 from curl_cffi import requests
-session = requests.Session(impersonate="chrome")
+session = requests.Session(impersonate="edge")
 
 def fetch_data(ticker: str, start_date: str, benchmark: str) -> Optional[Dict[str, Any]]:
     """Fetch historical stock data, benchmark data, and company info."""

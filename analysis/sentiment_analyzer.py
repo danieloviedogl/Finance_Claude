@@ -2,7 +2,7 @@ import yfinance as yf
 from typing import Dict, Any
 from .utils import to_serializable
 from curl_cffi import requests
-session = requests.Session(impersonate="chrome")
+session = requests.Session(impersonate="edge")
 
 def sentiment_analysis(ticker: str) -> Dict[str, Any]:
     """Perform basic sentiment analysis using analyst recommendations."""
