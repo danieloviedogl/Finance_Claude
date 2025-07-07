@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
-from Analizer import AdvancedStockAnalyzer, DEFAULT_PORTFOLIO_TICKERS # Import your class and defaults
+from analysis.analyzer_facade import StockAnalyzerFacade, DEFAULT_PORTFOLIO_TICKERS
 import json
 import os # Added import for path checking if needed later
 
@@ -190,16 +190,15 @@ if st.session_state.running_optimization:
         with st.spinner("Calculating optimal weights..."):
             # Create an instance. The main 'ticker' is not very relevant here,
             # but __init__ needs it. Use the first one from the list.
-            temp_analyzer = AdvancedStockAnalyzer(
+            temp_analyzer = StockAnalyzerFacade(
                 ticker=portfolio_list[0], # 'dummy' ticker for initialization
                 portfolio_tickers=portfolio_list,
                 risk_free_rate=risk_free_rate,
                 benchmark=benchmark
             )
-            # It's important to call fetch_data if calculate_optimal_portfolio needs it
-            # (Although yfinance downloads within the function, having benchmark_data can be useful)
-            temp_analyzer.fetch_data() # To ensure benchmark is loaded if necessary
-            opt_result = temp_analyzer.calculate_optimal_portfolio()
+            # The new facade handles data fetching internally
+            portfolio_results = temp_analyzer.run_portfolio_analysis()
+            opt_result = portfolio_results.get('portfolio')
 
             if opt_result and 'error' not in opt_result:
                 st.session_state.portfolio_optimization_result = opt_result
@@ -273,7 +272,7 @@ if st.session_state.portfolio_optimization_result:
         # Changed column header
         st.dataframe(
              pd.DataFrame.from_dict(weights_dict, orient='index', columns=['Optimal Weight'])
-             .applymap(lambda x: f"{x*100:.2f}%") # Format as %
+             .map(lambda x: f"{x*100:.2f}%") # Format as %
              .sort_values(by='Optimal Weight', ascending=False),
              use_container_width=True
          )
@@ -299,24 +298,24 @@ if st.session_state.portfolio_optimization_result:
         try:
              # Changed spinner message
             with st.spinner("Performing historical simulation..."):
-                # Use the saved instance which already has optimization results
+                # The results are already in the session state from the optimization run
                 analyzer_instance = st.session_state.portfolio_analyzer_instance
                 if analyzer_instance:
-                    backtest_data = analyzer_instance.backtest_portfolio(years_back=int(years_to_backtest)) # Ensure int
+                    # The portfolio analysis run already includes backtesting
+                    backtest_data = analyzer_instance.results.get('portfolio_backtest', {}).get(f'{years_to_backtest}_years')
+                    if not backtest_data: # If backtest for that year wasn't run, run it now
+                        backtest_data = analyzer_instance.run_portfolio_analysis()
+                        backtest_data = backtest_data.get('portfolio_backtest', {}).get(f'{years_to_backtest}_years')
 
                     if backtest_data and 'error' not in backtest_data:
                         st.session_state.portfolio_backtest_result = backtest_data
-                         # Changed success message
                         st.success(f"{years_to_backtest}-year backtest completed!")
                     elif backtest_data:
-                         # Changed error message
                         st.session_state.portfolio_backtest_error = f"Backtest failed: {backtest_data.get('error', 'Unknown reason')}"
                     else:
-                         # Changed error message
                         st.session_state.portfolio_backtest_error = "Backtest returned no results."
                 else:
-                     # Changed error message
-                     st.session_state.portfolio_backtest_error = "Error: Analyzer instance needed for backtest not found."
+                    st.session_state.portfolio_backtest_error = "Error: Analyzer instance needed for backtest not found."
 
         except Exception as e:
              # Changed error message

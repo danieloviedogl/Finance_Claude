@@ -10,3 +10,4 @@ seaborn==0.13.2
 statsmodels==0.14.4
 streamlit==1.43.2
 yfinance==0.2.54
+curl-cffi

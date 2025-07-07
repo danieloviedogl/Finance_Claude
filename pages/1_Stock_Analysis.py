@@ -6,7 +6,7 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime
-from Analizer import AdvancedStockAnalyzer # Import your class
+from analysis.analyzer_facade import StockAnalyzerFacade # Import your class
 import json
 
 # --- Specific page configuration ---
@@ -129,12 +129,13 @@ if st.session_state.running_stock_analysis and not st.session_state.stock_analys
         # Translate spinner message
         with st.spinner(f"Analyzing {current_ticker}... This may take a moment."):
 
-            analyzer = AdvancedStockAnalyzer(
+            analyzer = StockAnalyzerFacade(
                 ticker=current_ticker,
                 risk_free_rate=risk_free_rate,
-                benchmark=benchmark
+                benchmark=benchmark,
+                portfolio_tickers=portfolio_list
             )
-            result = analyzer.run_full_analysis() # run_full_analysis includes optimization
+            result = analyzer.run_full_analysis()
 
             if result and 'error' not in result:
                 st.session_state.stock_analysis_result = result
